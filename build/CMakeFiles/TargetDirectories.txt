@@ -1,0 +1,3 @@
+/home/kuslu/OOP_Projects/Homework1/build/CMakeFiles/rebuild_cache.dir
+/home/kuslu/OOP_Projects/Homework1/build/CMakeFiles/edit_cache.dir
+/home/kuslu/OOP_Projects/Homework1/build/CMakeFiles/Homework1.dir

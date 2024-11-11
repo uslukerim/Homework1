@@ -1,0 +1,16 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/kuslu/OOP_Projects/Homework1/src/main.cpp
+AnsiTerminal.h
+/home/kuslu/OOP_Projects/Homework1/src/AnsiTerminal.h
+Spreadsheet.h
+/home/kuslu/OOP_Projects/Homework1/src/Spreadsheet.h
+iostream
+-
+
