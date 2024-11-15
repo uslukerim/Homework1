@@ -54,12 +54,12 @@ std::vector<Token> Tokenizer::tokenize(const std::string& str) const {
  * @brief Classifies individual string parts as specific token types.
  */
 Token Tokenizer::classifyToken(const std::string& part) const {
-    // Check for a MatrixReference: exactly one letter followed by one to three digits
-    if (std::regex_match(part, std::regex("^[A-Z][0-9]{1,3}$"))) {
+    // Check for a MatrixReference: one or two letters followed by one to three digits
+    if (std::regex_match(part, std::regex("^[A-Z]{1,2}[0-9]{1,3}$"))) {
         return { TokenType::MatrixReference, part };
     }
     // Check for a Formula pattern
-    else if (std::regex_match(part, std::regex("^(SUM|AVER|MAX|MIN)\\([A-Z][0-9]{1,3}\\.\\.[A-Z][0-9]{1,3}\\)$"))) {
+    else if (std::regex_match(part, std::regex("^(SUM|AVER|MAX|MIN)\\([A-Z]{1,2}[0-9]{1,3}\\.\\.[A-Z]{1,2}[0-9]{1,3}\\)$"))) {
         return { TokenType::Formula, part };
     }
     // Check for a Number
@@ -76,6 +76,7 @@ Token Tokenizer::classifyToken(const std::string& part) const {
     }
     return { TokenType::Unknown, part };
 }
+
 
 
 

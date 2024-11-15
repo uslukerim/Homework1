@@ -1,7 +1,6 @@
 #include "AnsiTerminal.h"
 #include "Spreadsheet.h"
-#include "Tokenizer.h"
-#include "LexicalAnalysis.h"
+
 #include <iostream>
 
 int main() {
@@ -18,7 +17,7 @@ int main() {
     //     {9, 10, 11, 12},
     //     {13, 14, 15, 16}
     // };
-
+    //     data[0].resize(50);
     // // Create a Tokenizer and LexicalAnalysis object
     // Tokenizer tokenizer(operators, formulaLabels);
     // LexicalAnalysis lexicalAnalysis(tokenizer, data);
@@ -26,7 +25,7 @@ int main() {
     // // Test expressions
     // std::vector<std::string> expressions = {
   
-    //     "A1+5+AVER(A1..A3)",
+    //     "AA1+5+AVER(A1..A3)",
     // };
 
     // // Analyze each expression

@@ -4,7 +4,8 @@
 #include <vector>
 #include <string>
 #include "AnsiTerminal.h" // AnsiTerminal sınıfını tanıtmak için ekleyin
-
+#include "Tokenizer.h"
+#include "LexicalAnalysis.h"
 class Spreadsheet {
 public:
     Spreadsheet(int rows, int cols);
@@ -13,7 +14,7 @@ public:
     void setSecondHeader(const std::string& value);
 
     std::string getValue(int row, int col) const;
-    void display(AnsiTerminal& terminal,int cursorRow, int cursorCol, int offsetRow, int offsetCol) const;
+    void display(AnsiTerminal& terminal,int cursorRow, int cursorCol, int offsetRow,int offsetCol);
     char getContentType(const std::string& content)const;
     int getRows() const { return rows; }
     int getCols() const { return cols; }
@@ -21,11 +22,11 @@ public:
     int getWindowSize() const { return windowSize; }
     void setWindowSize(int size) { windowSize = size; }
 private:
+    void resizeIfNeeded(int newRow, int newCol);
     int rows, cols;
     std::string firsHeader,secondHeader;
     std::vector<std::vector<std::string>> data;
     int windowSize;
-
 };
 
 #endif // SPREADSHEET_H
