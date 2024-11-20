@@ -166,24 +166,32 @@ void Spreadsheet::display(AnsiTerminal& terminal,int cursorRow, int cursorCol, i
 
             // Get cell content
             std::string cellContent = data[r + offsetRow][c + offsetCol];
-            cellContent.resize(10, ' '); // Ensure fixed width for display
+            std::string displayText=" ";
+            if(cellContent!= " ")
+            {
+                cellContent.resize(10, ' '); // Ensure fixed width for display
 
-            // Analyze the current cell
-            std::vector<Token> cellTokens = tokenizer.tokenize(data[r + offsetRow][c + offsetCol]);
-             // Check for empty tokens or unknown token types
-            std::string analyzedValue;
-            if (cellTokens.empty() || cellTokens[0].type == TokenType::Unknown) {
-                analyzedValue = cellContent.substr(0, 8); // Display raw content
-            } else {
-                analyzedValue = lexicalAnalyzer.evaluateFormula(cellTokens);
-            }
+                // Analyze the current cell
+                std::vector<Token> cellTokens = tokenizer.tokenize(data[r + offsetRow][c + offsetCol]);
+                // Check for empty tokens or unknown token types
+                std::string analyzedValue;
+                if (cellTokens.empty() || cellTokens[0].type == TokenType::Unknown) {
+                    analyzedValue = cellContent.substr(0, 8); // Display raw content
+                } else {
+                    analyzedValue = lexicalAnalyzer.evaluateFormula(cellTokens);
+                }
 
-            // Determine display text based on analysis
-            std::string displayText = analyzedValue;
-            if (analyzedValue.find("Error") != std::string::npos) {
-                displayText = " "; // Display "Err" for invalid formulas or references
+                // Determine display text based on analysis
+                displayText = analyzedValue;
+                if (analyzedValue.find("Error") != std::string::npos) {
+                    displayText = cellContent; // Display "Err" for invalid formulas or references
+                }
+                displayText.resize(10, ' '); // Ensure fixed width for display
             }
-            displayText.resize(10, ' '); // Ensure fixed width for display
+            else{
+                cellContent.resize(10, ' '); // Ensure fixed width for display
+                displayText=cellContent;
+            }
 
             // Highlight the active cell
             if (r + offsetRow == cursorRow && c + offsetCol == cursorCol) {

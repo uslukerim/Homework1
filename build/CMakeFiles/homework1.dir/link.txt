@@ -1,1 +1,0 @@
-/usr/bin/c++     CMakeFiles/homework1.dir/src/AnsiTerminal.cpp.o CMakeFiles/homework1.dir/src/main.cpp.o  -o homework1 

@@ -35,24 +35,21 @@ std::string LexicalAnalysis::evaluateFormula(const std::vector<Token>& tokens) {
 
     for (const auto& token : tokens) {
         if (token.type == TokenType::Formula) {
-            // Evaluate and push the result of the formula
             std::string result = evaluateLabelFunction(token.value);
             if (result.find("Error") != std::string::npos) {
                 return result; // Return the error message directly
             }
             values.push(result);
         } else if (token.type == TokenType::MatrixReference) {
-            // Get the value of the matrix reference and push it
+            // Resolve the reference recursively
             std::string cellValue = getCellValue(token.value);
             if (cellValue.find("Error") != std::string::npos) {
                 return cellValue; // Return the error message directly
             }
             values.push(cellValue);
         } else if (token.type == TokenType::Number) {
-            // Directly push numeric tokens onto the values stack
-            values.push(token.value);
+            values.push(token.value); // Push numeric tokens onto the values stack
         } else if (token.type == TokenType::Operator) {
-            // Process operators based on precedence
             while (!ops.empty() && precedence(ops.top()) >= precedence(token.value[0])) {
                 if (values.size() < 2) {
                     return "Error: Invalid expression"; // Not enough operands
@@ -64,7 +61,6 @@ std::string LexicalAnalysis::evaluateFormula(const std::vector<Token>& tokens) {
             }
             ops.push(token.value[0]);
         } else {
-            // Unknown token type
             return "Error: Unknown token type";
         }
     }
@@ -80,7 +76,6 @@ std::string LexicalAnalysis::evaluateFormula(const std::vector<Token>& tokens) {
         values.push(applyOp(val1, val2, op));
     }
 
-    // If there are no values or more than one value left, the expression is invalid
     if (values.size() != 1) {
         return "Error: Invalid expression"; // Invalid formula
     }
@@ -159,39 +154,58 @@ std::string LexicalAnalysis::getCellValue(const std::string& cell) {
     int col = 0;
     size_t rowIndex = 0;
 
+    // Calculate the column index (e.g., "A" -> 0, "AA" -> 26, "ZZ" -> 701)
     while (rowIndex < cell.size() && isalpha(cell[rowIndex])) {
         col = col * 26 + (cell[rowIndex] - 'A' + 1);
         rowIndex++;
     }
-    col--;
+    col--; // Convert to 0-based indexing
 
+    // Extract and calculate the row index
     int row = std::stoi(cell.substr(rowIndex)) - 1;
 
+    // Validate that the row and column are within matrix bounds
     if (row < 0 || row >= data.size() || col < 0 || col >= data[0].size()) {
         return "Error: Invalid cell reference " + cell;
     }
 
-    return data[row][col];
+    std::string cellContent = data[row][col];
+
+    // If the cell content is a formula or reference, process it recursively
+    std::vector<Token> tokens = tokenizer.tokenize(cellContent);
+    if (!tokens.empty() && tokens[0].type == TokenType::Formula) {
+        return evaluateFormula(tokens); // Process the formula recursively
+    } else if (!tokens.empty()&&tokens.size()<=1 && tokens[0].type == TokenType::MatrixReference) {
+        return getCellValue(tokens[0].value); // Resolve the reference recursively
+    }
+    else if (!tokens.empty() &&tokens.size()<=1&& tokens[0].type == TokenType::Number) {
+        return formatDecimal(tokens[0].value); // Resolve the reference recursively
+    }
+   else if (!tokens.empty() &&tokens.size()>1) {//&& tokens[0].type == TokenType::Number
+        return evaluateFormula(tokens); // Resolve the reference recursively
+    }
+    return cellContent; // Return raw value if it's not a formula or reference
 }
 
 /**
  * @brief Applies an arithmetic operation to two string values.
  */
+
 std::string LexicalAnalysis::applyOp(const std::string& a, const std::string& b, char op) {
     if (!isNumeric(a) || !isNumeric(b)) {
         return "Error: Non-numeric value in operation";
     }
 
-    int intA = std::stoi(a);
-    int intB = std::stoi(b);
+    double doubleA = std::stod(a);
+    double doubleB = std::stod(b);
 
     switch (op) {
-        case '+': return std::to_string(intA + intB);
-        case '-': return std::to_string(intA - intB);
-        case '*': return std::to_string(intA * intB);
+        case '+': return std::to_string(doubleA + doubleB);
+        case '-': return std::to_string(doubleA - doubleB);
+        case '*': return std::to_string(doubleA * doubleB);
         case '/':
-            if (intB == 0) return "Error: Division by zero";
-            return std::to_string(intA / intB);
+            if (doubleB == 0) return "Error: Division by zero";
+            return std::to_string(doubleA / doubleB);
         default:
             return "Error: Unknown operator";
     }
@@ -200,10 +214,13 @@ std::string LexicalAnalysis::applyOp(const std::string& a, const std::string& b,
 /**
  * @brief Checks if a string represents a numeric value.
  */
+// bool LexicalAnalysis::isNumeric(const std::string& str) {
+//     if (str.empty()) return false;
+//     size_t start = (str[0] == '-') ? 1 : 0;
+//     return std::all_of(str.begin() + start, str.end(), ::isdigit);
+// }
 bool LexicalAnalysis::isNumeric(const std::string& str) {
-    if (str.empty()) return false;
-    size_t start = (str[0] == '-') ? 1 : 0;
-    return std::all_of(str.begin() + start, str.end(), ::isdigit);
+    return std::regex_match(str, std::regex("^-?\\d*\\.?\\d+([eE][-+]?\\d+)?$"));
 }
 
 /**
@@ -213,4 +230,21 @@ int LexicalAnalysis::precedence(char op) {
     if (op == '+' || op == '-') return 1;
     if (op == '*' || op == '/') return 2;
     return 0;
+}
+std::string LexicalAnalysis::formatDecimal(const std::string& number) {
+double value = std::stod(number); // Convert string to double
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(15) << value; // Format with maximum precision
+    std::string formatted = oss.str();
+
+    // Trim trailing zeros
+    size_t decimalPos = formatted.find('.');
+    if (decimalPos != std::string::npos) {
+        size_t end = formatted.find_last_not_of('0');
+        if (end == decimalPos) {
+            end--; // Remove the dot if no fractional part remains
+        }
+        formatted = formatted.substr(0, end + 1);
+    }
+    return formatted;
 }

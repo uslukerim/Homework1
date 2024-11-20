@@ -8,8 +8,10 @@
 #include <regex>
 #include <numeric>
 #include <algorithm>
-#include "Tokenizer.h" // Tokenizer class is assumed to be implemented separately
+#include <sstream>  // std::ostringstream için
+#include <iomanip>
 
+#include "Tokenizer.h" // Tokenizer class is assumed to be implemented separately
 
 
 /**
@@ -65,6 +67,8 @@ public:
      * @return std::string The result of the calculation.
      */
     std::string calculateRangeFunction(const std::string& label, const std::string& startCell, const std::string& endCell);
+
+    std::string  formatDecimal(const std::string& number) ;
 
 private:
     const Tokenizer& tokenizer; ///< Reference to the Tokenizer instance.
