@@ -8,7 +8,7 @@
 
 // Constructor: Initializes the spreadsheet with the specified number of rows and columns
 Spreadsheet::Spreadsheet(int rows, int cols) : rows(rows), cols(cols) {
-    data.resize(rows, std::vector<std::string>(cols, " ")); // Initialize all cells with empty strings
+    data.resize(rows, std::vector<std::string>(cols, "")); // Initialize all cells with empty strings
 secondHeader =" ";
 }
 /**
@@ -167,7 +167,7 @@ void Spreadsheet::display(AnsiTerminal& terminal,int cursorRow, int cursorCol, i
             // Get cell content
             std::string cellContent = data[r + offsetRow][c + offsetCol];
             std::string displayText=" ";
-            if(cellContent!= " ")
+            if(cellContent!= "")
             {
                 cellContent.resize(10, ' '); // Ensure fixed width for display
 
