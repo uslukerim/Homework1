@@ -64,26 +64,23 @@ while (running) {
     char key = terminal.getSpecialKey();
     sheet.setSecondHeader(" ");             // İkinci başlığı temizle
 
+
     // Kullanıcı girdisine göre hareket et
     switch (key) {
         case 'U':
             cursorRow = std::max(0, cursorRow - 1); // Yukarı hareket
-            // sheet.setSecondHeader(" ");             // İkinci başlığı temizle
             break;
 
         case 'D':
             cursorRow = std::min(sheet.getRows() - 1, cursorRow + 1); // Aşağı hareket
-            // sheet.setSecondHeader(" ");             // İkinci başlığı temizle
             break;
 
         case 'L':
             cursorCol = std::max(0, cursorCol - 1); // Sol hareket
-            // sheet.setSecondHeader(" ");             // İkinci başlığı temizle
             break;
 
         case 'R':
             cursorCol = std::min(sheet.getCols() - 1, cursorCol + 1); // Sağ hareket
-            // sheet.setSecondHeader(" ");             // İkinci başlığı temizle
             break;
 
         case 'q':

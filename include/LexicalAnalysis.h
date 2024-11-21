@@ -67,6 +67,14 @@ public:
      * @return std::string The result of the calculation.
      */
     std::string calculateRangeFunction(const std::string& label, const std::string& startCell, const std::string& endCell);
+    
+    /**
+     * @brief Checks if a string represents a numeric value.
+     * 
+     * @param str The string to check.
+     * @return bool True if the string is numeric, false otherwise.
+     */
+    bool isNumeric(const std::string& str);
 
     std::string  formatDecimal(const std::string& number) ;
 
@@ -84,13 +92,6 @@ private:
      */
     std::string applyOp(const std::string& a, const std::string& b, char op);
 
-    /**
-     * @brief Checks if a string represents a numeric value.
-     * 
-     * @param str The string to check.
-     * @return bool True if the string is numeric, false otherwise.
-     */
-    bool isNumeric(const std::string& str);
 
     /**
      * @brief Determines the precedence of an operator.

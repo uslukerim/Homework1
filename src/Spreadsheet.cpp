@@ -144,17 +144,6 @@ void Spreadsheet::display(AnsiTerminal& terminal,int cursorRow, int cursorCol, i
         terminal.printAt(headerRow + r + 1, 2, "\033[42m " + std::to_string(r + offsetRow + 1) + " \033[0m");
     }
 
-    // // Display second header
-    // terminal.printAt(2, 2, secondHeader);
-
-    // // Draw column headers within the 10x10 window
-    // for (int c = 0; c < windowSize && c + offsetCol < cols; ++c) {
-    //     std::string colLabel = getColumnLabel(c + offsetCol);
-    //     colLabel.resize(10, ' ');
-    //     terminal.printAt(headerRow, headerCol + c * cellWidth, "\033[42m " + colLabel + " \033[0m");
-    // }
-
-    // Draw row headers within the 10x10 window
     for (int r = 0; r < windowSize && r + offsetRow < rows; ++r) {
         terminal.printAt(headerRow + r + 1, 2, "\033[42m " + std::to_string(r + offsetRow + 1) + " \033[0m");
     }
@@ -186,12 +175,19 @@ void Spreadsheet::display(AnsiTerminal& terminal,int cursorRow, int cursorCol, i
                 if (analyzedValue.find("Error") != std::string::npos) {
                     displayText = cellContent; // Display "Err" for invalid formulas or references
                 }
+          
+            if(lexicalAnalyzer.isNumeric(displayText))
+            {
+                displayText=lexicalAnalyzer.formatDecimal(displayText);
+            }
+            
                 displayText.resize(10, ' '); // Ensure fixed width for display
             }
             else{
                 cellContent.resize(10, ' '); // Ensure fixed width for display
                 displayText=cellContent;
             }
+
 
             // Highlight the active cell
             if (r + offsetRow == cursorRow && c + offsetCol == cursorCol) {

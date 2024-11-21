@@ -79,7 +79,9 @@ Token Tokenizer::classifyToken(const std::string& part) const {
     }
 
     // Check for a scientific notation number (e.g., .123E2 -> 0.123E2)
-    else if (std::regex_match(part, std::regex("^-?\\.?\\d+([eE][-+]?\\d+)?$"))) {
+                                              //
+                                              //"^-?\\.?\\d+([eE][-+]?\\d+)?$"
+    else if (std::regex_match(part, std::regex("^-?\\d*\\.?\\d+([eE][-+]?\\d+)?$"))) {
         if (part[0] == '.') { // Handle numbers starting with '.'
             std::string normalized = "0" + part;
             return { TokenType::Number, normalized };
