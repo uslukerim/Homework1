@@ -21,6 +21,12 @@ public:
     std::string getColumnLabel(int index) const;
     int getWindowSize() const { return windowSize; }
     void setWindowSize(int size) { windowSize = size; }
+
+    bool loadFromFile(const std::string& filename);
+    bool saveToFile(const std::string& filename) const;
+    void createNew(int newRows, int newCols);
+
+
 private:
     void resizeIfNeeded(int newRow, int newCol);
     int rows, cols;

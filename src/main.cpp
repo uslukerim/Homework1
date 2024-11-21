@@ -2,7 +2,10 @@
 #include "Spreadsheet.h"
 
 #include <iostream>
-
+enum class ProgramMode {
+    MainMenu,
+    Spreadsheet
+};
 void handleNavigation(char inputKey, int& cursorRow, int& cursorCol, int maxRows, int maxCols) {
     switch (inputKey) {
         case 'U': cursorRow = std::max(0, cursorRow - 1); break; // Yukarı
@@ -35,11 +38,113 @@ void updateCellContent(Spreadsheet& sheet, int cursorRow, int cursorCol, char ke
     prevRow = cursorRow;
     prevCol = cursorCol;
 }
+// Kullanıcıdan dosya adını alacak yardımcı fonksiyon
+std::string getFileNameFromUser(AnsiTerminal& terminal, int windowSize, const std::string& promptMessage, int offsetX) {
+    terminal.printInvertedAt(windowSize + 6, offsetX, promptMessage);
+    std::string filename;
+    char fileInputChar;
+    int currentX = offsetX + promptMessage.length() + 2; // Başlangıç pozisyonu
+
+    while ((fileInputChar = terminal.getSpecialKey()) != '\n') {
+        filename += fileInputChar;
+        terminal.printInvertedAt(windowSize + 6, currentX, filename);
+    }
+    return filename;
+}
+
+void handleMainMenu(Spreadsheet& sheet, AnsiTerminal& terminal, ProgramMode& mode, int windowSize, std::string& currentFile) {
+    terminal.clearScreen();
+    
+    // Mevcut dosya adı bilgisi
+    std::string currentFileDisplay = currentFile.empty() ? "Untitled" : currentFile;
+
+    // Ana menü ve mevcut dosya adı
+    std::string DownTabMenu = "1. Create New | 2. Select File | 3. Save File | 4. Save As | q. Quit";
+    terminal.printInvertedAt(windowSize + 6, 2, DownTabMenu);
+    terminal.printInvertedAt(windowSize + 8, 2, "Current File: " + currentFileDisplay);
+
+    // Dinamik olarak başlangıç X pozisyonu hesapla
+    int offsetX = DownTabMenu.length() + 5;
+
+    char inputKey = terminal.getSpecialKey(); // Kullanıcı girdisi al
+    switch (inputKey) {
+        case '1': {
+            sheet.createNew(20, 8); // Yeni bir tablo oluştur
+            currentFile.clear();   // Yeni tablo için dosya adı temizlenir
+            mode = ProgramMode::Spreadsheet; // Spreadsheet moduna geç
+            break;
+        }
+        case '2': {
+            // Dosya adını kullanıcıdan al
+            currentFile = getFileNameFromUser(terminal, windowSize, "Enter file name to load: ", offsetX);
+            if (sheet.loadFromFile(currentFile)) {
+                terminal.printInvertedAt(windowSize + 6, offsetX, "File loaded successfully");
+                mode = ProgramMode::Spreadsheet; // Spreadsheet moduna geç
+            } else {
+                terminal.printInvertedAt(windowSize + 6, offsetX, "Failed to load file.");
+                currentFile.clear(); // Hatalı yükleme durumunda dosya adı temizlenir
+            }
+            break;
+        }
+        case '3': {
+            // Save File
+            if (currentFile.empty()) {
+                terminal.printInvertedAt(windowSize + 6, offsetX, "No file name. Use 'Save As' instead.");
+            } else if (sheet.saveToFile(currentFile)) {
+                terminal.printInvertedAt(windowSize + 6, offsetX, "File saved successfully");
+            } else {
+                terminal.printInvertedAt(windowSize + 6, offsetX, "Failed to save file.");
+            }
+            break;
+        }
+        case '4': {
+            // Save As
+            std::string newFileName = getFileNameFromUser(terminal, windowSize, "Enter file name to save as: ", offsetX);
+            if (sheet.saveToFile(newFileName)) {
+                currentFile = newFileName; // Yeni dosya adı olarak güncelle
+                terminal.printInvertedAt(windowSize + 6, offsetX, "File saved successfully");
+            } else {
+                terminal.printInvertedAt(windowSize + 6, offsetX, "Failed to save file.");
+            }
+            break;
+        }
+        case 'q': {
+            mode = ProgramMode::MainMenu;
+            break;
+        }
+        default:
+            break; // Geçersiz giriş, hiçbir şey yapma
+    }
+}
+
+// Spread sheet işlemleri için bir fonksiyon
+void handleSpreadsheet(Spreadsheet& sheet, AnsiTerminal& terminal, ProgramMode& mode, int& cursorRow, int& cursorCol, 
+                       int& offsetRow, int& offsetCol, int windowSize, bool& editingMode, int& prevRow, int& prevCol) {
+    updateOffsets(offsetRow, offsetCol, cursorRow, cursorCol, windowSize); // Ofseti güncelle
+    sheet.display(terminal, cursorRow, cursorCol, offsetRow, offsetCol); // Spread sheet'i göster
+    char inputKey = terminal.getSpecialKey(); // Kullanıcı girdisi al
+
+    if (inputKey == 'q') {
+        mode = ProgramMode::MainMenu; // Ana menüye dön
+        prevRow = -1;
+        prevCol = -1;
+    } else if (strchr("UDLR", inputKey) && !editingMode) {
+        handleNavigation(inputKey, cursorRow, cursorCol, sheet.getRows(), sheet.getCols());
+    } else if (inputKey == '\n') {
+        editingMode = false;
+        prevRow = -1;
+        prevCol = -1;
+        sheet.setSecondHeader(editingMode ? "Editing Mode: Active" : "Editing Mode: Inactive");
+    } else {
+        editingMode = true;
+        updateCellContent(sheet, cursorRow, cursorCol, inputKey, prevRow, prevCol);
+    }
+}
 
 int main() {
-
     AnsiTerminal terminal;
     Spreadsheet sheet(20, 40); // 20 satır ve 8 sütunluk bir tablo oluşturun
+    ProgramMode mode = ProgramMode::MainMenu; // Başlangıç modu menü
 
 
     // terminal.printAt(50, 2, "\033[42m " + std::to_string(50 + 1) + " \033[0m");
@@ -52,31 +157,19 @@ int main() {
     int offsetRow = 0, offsetCol = 0;
     sheet.setWindowSize(10);
     bool editingMode=false;
-    while (running) {
-        updateOffsets(offsetRow, offsetCol, cursorRow, cursorCol, windowSize); // Ofseti güncelle
-        sheet.display(terminal, cursorRow, cursorCol, offsetRow, offsetCol); // Tabloyu göster
-        char inputKey = terminal.getSpecialKey(); // Kullanıcı girdisi al
-        sheet.setSecondHeader(" "); // İkinci başlığı temizle
-
-        if (inputKey == 'q') {
-            running = false; // Çıkış
-        } else if (strchr("UDLR", inputKey) && !editingMode) {
-            // Hareket girdilerini işle
-            handleNavigation(inputKey, cursorRow, cursorCol, sheet.getRows(), sheet.getCols());
-        } else {
-            // Diğer girdiler için hücre içeriğini güncelle
-            if(inputKey=='\n')
-            {
-                editingMode= false;
-                prevRow=-1;prevCol=-1;
-                sheet.setSecondHeader("Editing Mode: Inactive");
-            }
-            else
-            {
-                //sheet.setSecondHeader("Editing Mode: Active");
-                editingMode=true;
-                updateCellContent(sheet, cursorRow, cursorCol, inputKey, prevRow, prevCol);
-            }
+    std::string DownTabMenu ="Create New(1)  Select File(2) Save Current File(3) Quit(q)";//std::string DownTabMenu[4]={ "Create New(1)","Select File(2)"," Save Current File(3)", "Quit(q)"};
+    std::string DownTabMenuSelection="   ";
+    char fileInputChar='_';
+    std::string filename="";
+  while (running) {
+        switch (mode) {
+            case ProgramMode::MainMenu:
+                handleMainMenu(sheet, terminal, mode, windowSize, filename);
+                break;
+            case ProgramMode::Spreadsheet:
+                handleSpreadsheet(sheet, terminal, mode, cursorRow, cursorCol, offsetRow, offsetCol, 
+                                  windowSize, editingMode, prevRow, prevCol);
+                break;
         }
     }
     return 0;

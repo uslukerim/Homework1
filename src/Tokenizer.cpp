@@ -21,7 +21,7 @@ std::vector<Token> Tokenizer::tokenize(const std::string& str) const {
     std::regex tokenRegex(
     "([A-Z][0-9]{1,3}|"                    // Hücre referansı: A1, B20, AA300 gibi
     "[\\+\\-\\*/]|"                        // Matematiksel operatörler: +, -, *, /
-    "(SUM|AVER|MAX|MIN)\\([A-Z][0-9]{1,3}\\.\\.[A-Z][0-9]{1,3}\\)|" // Formüller: SUM(A1..A10)
+    "(SUM|@SUM|STDDEV|@STDDEV|AVER|@AVER|MAX|@MAX|MIN|@MIN)\\(([A-Z]{1,2}[0-9]{1,3})\\.\\.([A-Z]{1,2}[0-9]{1,3})\\)|" // Formüller: SUM(A1..A10)
     "-?\\d*\\.?\\d+([eE][-+]?\\d+)?|\\w+)" // Sayılar: 12.34, .1234, 1.23E4
 );
 
@@ -66,7 +66,7 @@ Token Tokenizer::classifyToken(const std::string& part) const {
         return { TokenType::MatrixReference, part };
     }
     // Check for a Formula pattern
-    else if (std::regex_match(part, std::regex("^(SUM|AVER|MAX|MIN)\\([A-Z]{1,2}[0-9]{1,3}\\.\\.[A-Z]{1,2}[0-9]{1,3}\\)$"))) {
+    else if (std::regex_match(part, std::regex("^(SUM|@SUM|STDDEV|@STDDEV|AVER|@AVER|MAX|@MAX|MIN|@MIN)\\(([A-Z]{1,2}[0-9]{1,3})\\.\\.([A-Z]{1,2}[0-9]{1,3})\\)$"))) {
         return { TokenType::Formula, part };
     }
     // // Check for a Number

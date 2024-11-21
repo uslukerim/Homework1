@@ -5,6 +5,7 @@
 #include <string>
 
 #include <algorithm>
+#include<fstream>
 
 // Constructor: Initializes the spreadsheet with the specified number of rows and columns
 Spreadsheet::Spreadsheet(int rows, int cols) : rows(rows), cols(cols) {
@@ -105,6 +106,71 @@ bool isNumeric = true;
     // Sayısal ise 'V', değilse 'L' döndür
     return isNumeric ? 'V' : 'L';
 }
+bool Spreadsheet::loadFromFile(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        //throw std::runtime_error("Dosya açılamadı: " + filename);
+        return false;
+    }
+
+    std::string line;
+    int currentRow = 0;
+    data.clear(); // Mevcut tabloyu sıfırla
+    while (std::getline(file, line)) {
+        std::stringstream ss(line);
+        std::string cell;
+        std::vector<std::string> row;
+
+        while (std::getline(ss, cell, ',')) {
+            row.push_back(cell);
+        }
+
+        if (currentRow == 0) { // İlk satır başlıkları temsil eder
+            firsHeader = row.empty() ? "" : row[0];
+            if (row.size() > 1) secondHeader = row[1];
+        } else {
+            data.push_back(row);
+        }
+        currentRow++;
+    }
+
+    rows = data.size();
+    cols = rows > 0 ? data[0].size() : 0;
+
+    file.close();
+}
+bool Spreadsheet::saveToFile(const std::string& filename) const {
+    std::ofstream file(filename);
+    if (!file.is_open()) {
+        //throw std::runtime_error("Dosya açılamadı: " + filename);
+        return false;
+    }
+
+    // // Başlıkları yaz
+    // file << firsHeader << "," << secondHeader << "\n";
+
+    // Verileri yaz
+    for (const auto& row : data) {
+        for (size_t i = 0; i < row.size(); ++i) {
+            file << row[i];
+            if (i < row.size() - 1) {
+                file << ",";
+            }
+        }
+        file << "\n";
+    }
+
+    file.close();
+}
+void Spreadsheet::createNew(int newRows, int newCols) {
+    data.clear(); // Önce mevcut verileri temizle
+    data.shrink_to_fit(); // Vektörün kapasitesini serbest bırak
+    rows = newRows;
+    cols = newCols;
+    data = std::vector<std::vector<std::string>>(rows, std::vector<std::string>(cols, ""));
+    firsHeader.clear();
+    secondHeader.clear();
+}
 
 void Spreadsheet::display(AnsiTerminal& terminal,int cursorRow, int cursorCol, int offsetRow,int offsetCol) {
     terminal.clearScreen();
@@ -131,8 +197,9 @@ void Spreadsheet::display(AnsiTerminal& terminal,int cursorRow, int cursorCol, i
 
 
 
-    // Display second header
     terminal.printAt(2, 2, secondHeader);    // 10x10 pencere içindeki sütun başlıklarını çiz
+
+
     for (int c = 0; c < windowSize && c + offsetCol < cols; ++c) {
         std::string colLabel = getColumnLabel(c + offsetCol);
         colLabel.resize(10,' ');
@@ -198,8 +265,8 @@ void Spreadsheet::display(AnsiTerminal& terminal,int cursorRow, int cursorCol, i
         }
     }
 
+    //terminal.printAt(150, 2, "TEst  rwr");    // 10x10 pencere içindeki sütun başlıklarını çiz
     std::cout << "\033[0m" << std::flush;
-
 }
 
 

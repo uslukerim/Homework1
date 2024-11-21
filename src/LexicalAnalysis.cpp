@@ -84,16 +84,21 @@ std::string LexicalAnalysis::evaluateFormula(const std::vector<Token>& tokens) {
 }
 
 /**
- * @brief Evaluates a function label expression such as SUM, AVER, MAX, or MIN.
+ * @brief Evaluates a function label expression such as SUM, @SUM, STDDEV, or @STDDEV.
  */
 std::string LexicalAnalysis::evaluateLabelFunction(const std::string& labelExpression) {
-    std::regex labelRegex("(SUM|AVER|MAX|MIN)\\(([A-Z]{1,2}[0-9]{1,3})\\.\\.([A-Z]{1,2}[0-9]{1,3})\\)");
+    std::regex labelRegex("(SUM|@SUM|STDDEV|@STDDEV|AVER|@AVER|MAX|@MAX|MIN|@MIN)\\(([A-Z]{1,2}[0-9]{1,3})\\.\\.([A-Z]{1,2}[0-9]{1,3})\\)");
     std::smatch match;
 
     if (std::regex_match(labelExpression, match, labelRegex)) {
-        std::string label = match[1];      // Function label (SUM, AVER, etc.)
+        std::string label = match[1];      // Function label (SUM, @SUM, etc.)
         std::string startCell = match[2]; // Start cell
         std::string endCell = match[3];   // End cell
+
+        // Normalize the label to ignore "@" prefix for consistency
+        if (label[0] == '@') {
+            label = label.substr(1); // Remove '@'
+        }
 
         return calculateRangeFunction(label, startCell, endCell);
     }
@@ -101,24 +106,40 @@ std::string LexicalAnalysis::evaluateLabelFunction(const std::string& labelExpre
     return "Error: Invalid formula label expression";
 }
 
+
 /**
  * @brief Calculates a function over a specified range of cells.
  */
 std::string LexicalAnalysis::calculateRangeFunction(const std::string& label, const std::string& startCell, const std::string& endCell) {
-    int startRow = startCell[0] - 'A';
-    int startCol = std::stoi(startCell.substr(1)) - 1;
-    int endRow = endCell[0] - 'A';
-    int endCol = std::stoi(endCell.substr(1)) - 1;
+    // Hücrelerin satır ve sütun koordinatlarını al
+    int startCol = startCell[0] - 'A'; // Sütun
+    int startRow = std::stoi(startCell.substr(1)) - 1; // Satır
+    int endCol = endCell[0] - 'A'; // Sütun
+    int endRow = std::stoi(endCell.substr(1)) - 1; // Satır
 
+    // Geçersiz hücre aralığı kontrolü
     if (startRow < 0 || startRow >= data.size() || endRow < 0 || endRow >= data.size() ||
         startCol < 0 || startCol >= data[0].size() || endCol < 0 || endCol >= data[0].size()) {
         return "Error: Invalid cell range " + startCell + " to " + endCell;
     }
 
+    // Hücrelerin aynı sütunda veya aynı satırda olup olmadığını kontrol et
+    if (startCol != endCol && startRow != endRow) {
+        return "Error: Function can only operate on the same column or row";
+    }
+
     std::vector<std::string> values;
-    for (int row = startRow; row <= endRow; ++row) {
+
+    // Aynı sütundaki hücreleri işle
+    if (startCol == endCol) {
+        for (int row = startRow; row <= endRow; ++row) {
+            values.push_back(data[row][startCol]);
+        }
+    }
+    // Aynı satırdaki hücreleri işle
+    else if (startRow == endRow) {
         for (int col = startCol; col <= endCol; ++col) {
-            values.push_back(data[row][col]);
+            values.push_back(data[startRow][col]);
         }
     }
 
@@ -126,22 +147,36 @@ std::string LexicalAnalysis::calculateRangeFunction(const std::string& label, co
         return "Error: No valid cells in the specified range.";
     }
 
-    // Convert string values to integers and perform calculations
-    std::vector<int> intValues;
+    // Sayısal değerleri ayıkla
+    std::vector<double> doubleValues;
     for (const auto& val : values) {
         if (isNumeric(val)) {
-            intValues.push_back(std::stoi(val));
+            doubleValues.push_back(std::stod(val));
         }
     }
 
+    // Fonksiyon hesaplama
     if (label == "SUM") {
-        return std::to_string(std::accumulate(intValues.begin(), intValues.end(), 0));
+        return std::to_string(std::accumulate(doubleValues.begin(), doubleValues.end(), 0.0));
     } else if (label == "AVER") {
-        return std::to_string(std::accumulate(intValues.begin(), intValues.end(), 0) / intValues.size());
+        return std::to_string(std::accumulate(doubleValues.begin(), doubleValues.end(), 0.0) / doubleValues.size());
     } else if (label == "MAX") {
-        return std::to_string(*std::max_element(intValues.begin(), intValues.end()));
+        return std::to_string(*std::max_element(doubleValues.begin(), doubleValues.end()));
     } else if (label == "MIN") {
-        return std::to_string(*std::min_element(intValues.begin(), intValues.end()));
+        return std::to_string(*std::min_element(doubleValues.begin(), doubleValues.end()));
+    } else if (label == "STDDEV") {
+        // Ortalama hesapla
+        double mean = std::accumulate(doubleValues.begin(), doubleValues.end(), 0.0) / doubleValues.size();
+
+        // Varyans hesapla
+        double variance = 0.0;
+        for (const auto& val : doubleValues) {
+            variance += (val - mean) * (val - mean);
+        }
+        variance /= doubleValues.size();
+
+        // Standart sapma (karekök)
+        return std::to_string(std::sqrt(variance));
     }
 
     return "Error: Unknown function label " + label;

@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <sstream>  // std::ostringstream için
 #include <iomanip>
-
+#include <cmath>
 #include "Tokenizer.h" // Tokenizer class is assumed to be implemented separately
 
 
