@@ -59,7 +59,7 @@ void handleMainMenu(Spreadsheet& sheet, AnsiTerminal& terminal, ProgramMode& mod
     std::string currentFileDisplay = currentFile.empty() ? "Untitled" : currentFile;
 
     // Ana menü ve mevcut dosya adı
-    std::string DownTabMenu = "1. Create New | 2. Select File | 3. Save File | 4. Save As | q. Quit";
+    std::string DownTabMenu = "1. Create New | 2. Select File | 3. Save File | 4. Save As | 5. Show Current File | q. Quit";
     terminal.printInvertedAt(windowSize + 6, 2, DownTabMenu);
     terminal.printInvertedAt(windowSize + 8, 2, "Current File: " + currentFileDisplay);
 
@@ -107,6 +107,18 @@ void handleMainMenu(Spreadsheet& sheet, AnsiTerminal& terminal, ProgramMode& mod
                 terminal.printInvertedAt(windowSize + 6, offsetX, "Failed to save file.");
             }
             break;
+        }
+        case '5':
+        {
+            if(currentFile.empty())
+            {
+                terminal.printInvertedAt(windowSize + 6, offsetX, "File is not exist, you can Create New");
+            }
+            else
+            {
+                mode = ProgramMode::Spreadsheet; // Spreadsheet mod
+            }
+          break;
         }
         case 'q': {
             mode = ProgramMode::MainMenu;
@@ -157,8 +169,8 @@ int main() {
     int offsetRow = 0, offsetCol = 0;
     sheet.setWindowSize(10);
     bool editingMode=false;
-    std::string DownTabMenu ="Create New(1)  Select File(2) Save Current File(3) Quit(q)";//std::string DownTabMenu[4]={ "Create New(1)","Select File(2)"," Save Current File(3)", "Quit(q)"};
-    std::string DownTabMenuSelection="   ";
+    // std::string DownTabMenu ="Create New(1)  Select File(2) Save Current File(3) 4.Show Current File Quit(q)";//std::string DownTabMenu[4]={ "Create New(1)","Select File(2)"," Save Current File(3)", "Quit(q)"};
+    // std::string DownTabMenuSelection="   ";
     char fileInputChar='_';
     std::string filename="";
   while (running) {
