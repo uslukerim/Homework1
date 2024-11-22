@@ -68,8 +68,8 @@ void handleMainMenu(Spreadsheet& sheet, AnsiTerminal& terminal, ProgramMode& mod
 
     char inputKey = terminal.getSpecialKey(); // Kullanıcı girdisi al
     switch (inputKey) {
-        case '1': {
-            sheet.createNew(20, 8); // Yeni bir tablo oluştur
+        case '1': { 
+            sheet.createNew(20, 20); // Yeni bir tablo oluştur
             currentFile.clear();   // Yeni tablo için dosya adı temizlenir
             mode = ProgramMode::Spreadsheet; // Spreadsheet moduna geç
             break;

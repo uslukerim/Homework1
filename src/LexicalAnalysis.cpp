@@ -205,19 +205,27 @@ std::string LexicalAnalysis::getCellValue(const std::string& cell) {
     }
 
     std::string cellContent = data(row,col);
-
-    // If the cell content is a formula or reference, process it recursively
     std::vector<Token> tokens = tokenizer.tokenize(cellContent);
-    if (!tokens.empty() && tokens[0].type == TokenType::Formula) {
-        return evaluateFormula(tokens); // Process the formula recursively
-    } else if (!tokens.empty()&&tokens.size()<=1 && tokens[0].type == TokenType::MatrixReference) {
-        return getCellValue(tokens[0].value); // Resolve the reference recursively
+    for(int i=0;i<tokens.size();++i)
+    {
+        if(tokens[i].type == TokenType::Unknown)
+            return cellContent;
     }
-    else if (!tokens.empty() &&tokens.size()<=1&& tokens[0].type == TokenType::Number) {
-        return formatDecimal(tokens[0].value); // Resolve the reference recursively
-    }
-   else if (!tokens.empty() &&tokens.size()>1) {//&& tokens[0].type == TokenType::Number
-        return evaluateFormula(tokens); // Resolve the reference recursively
+    
+    if(cellContent!=cell)
+    {
+        // If the cell content is a formula or reference, process it recursively
+        if (!tokens.empty() && tokens[0].type == TokenType::Formula) {
+            return evaluateFormula(tokens); // Process the formula recursively
+        } else if (!tokens.empty()&&tokens.size()<=1 && tokens[0].type == TokenType::MatrixReference) {
+            return getCellValue(tokens[0].value); // Resolve the reference recursively
+        }
+        else if (!tokens.empty() &&tokens.size()<=1&& tokens[0].type == TokenType::Number) {
+            return formatDecimal(tokens[0].value); // Resolve the reference recursively
+        }
+        else if (!tokens.empty() &&tokens.size()>1) {//&& tokens[0].type == TokenType::Number
+            return evaluateFormula(tokens); // Resolve the reference recursively
+        }
     }
     return cellContent; // Return raw value if it's not a formula or reference
 }
