@@ -6,14 +6,14 @@ project(Homework1)
 # C++ standart setting 
 set(CMAKE_CXX_STANDARD 11)
 
-# include dizinini belirt
+#declerate include path 
 include_directories(include)
 
 #set(SOURCES src/AnsiTerminal.cpp src/main.cpp)
 
-# Projedeki kaynak dosyaları listele
+# list of project source codes
 file(GLOB SOURCES "src/*.cpp")
 
-# Çıktı dosyasının ismini ayarla
+# Execautable file name
 
 add_executable(Homework1 ${SOURCES})
