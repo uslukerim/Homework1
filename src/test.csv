@@ -1,0 +1,5 @@
+10,15,Label1
+20,=A1 + 5,Label2
+=A1 + A2,=B1 + B2,Label3
+=A1 * 2,=AVER(A1..A2),=MAX(A1..A2)
+=SUM(A1..A4),=STDDEV(A1..A2),=MIN(A1..A2)
