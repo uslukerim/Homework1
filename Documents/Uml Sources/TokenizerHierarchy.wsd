@@ -1,0 +1,34 @@
+@startuml
+class Tokenizer {
+  + Tokenizer(operators: vector<string>, formulaLabels: vector<string>, regexMap: unordered_map<RegexType, string>)
+  + tokenize(input: string): vector<Token>
+  + classifyToken(part: string): Token
+}
+
+class Token {
+  + type: TokenType
+  + value: string
+}
+
+enum TokenType {
+  Number
+  Label
+  MatrixReference
+  Formula
+  Operator
+  Unknown
+}
+
+class CellMatrix {
+  + getValue(row: int, col: int): string
+  + setValue(row: int, col: int, value: string): void
+  + getRows(): int
+  + getCols(): int
+  + saveToFile(filename: string): bool
+  + loadFromFile(filename: string): bool
+}
+
+Tokenizer *-- Token : produces
+Tokenizer --> TokenType : categorizes
+Tokenizer --> CellMatrix : resolves
+@enduml

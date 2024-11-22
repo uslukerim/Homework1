@@ -76,6 +76,16 @@ public:
      */
     bool isNumeric(const std::string& str);
 
+    /**
+     * @brief Formats a decimal string by trimming unnecessary trailing zeros and ensuring precision.
+     *
+     * Converts the input string representation of a number to a double,
+     * formats it to a fixed precision of 15 decimal places, and removes
+     * trailing zeros, including the decimal point if no fractional part remains.
+     *
+     * @param number The decimal number as a string.
+     * @return A formatted string representation of the decimal number.
+     */
     std::string  formatDecimal(const std::string& number) ;
 
 private:

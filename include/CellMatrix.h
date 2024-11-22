@@ -65,6 +65,16 @@ public:
      */
     const std::string& operator()(int row, int col) const;
     
+    /**
+     * @brief Retrieves the value of a cell in the matrix at the specified row and column.
+     *
+     * Checks if the provided row and column indices are within bounds. If valid,
+     * returns the value stored in the corresponding cell. Otherwise, returns an empty string.
+     *
+     * @param row The row index of the cell (1-based index).
+     * @param col The column index of the cell (1-based index).
+     * @return The value of the cell as a string, or an empty string if the indices are out of bounds.
+     */
     const std::string getValue(int row, int col) const ;
 
     /**

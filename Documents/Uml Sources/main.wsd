@@ -1,0 +1,60 @@
+@startuml
+state "Main Menu" as MainMenu {
+    [*] --> Idle
+    Idle --> CreateNew: '1'
+    Idle --> LoadFile: '2'
+    Idle --> SaveFile: '3'
+    Idle --> SaveAs: '4'
+    Idle --> ShowCurrentFile: '5'
+    Idle --> Quit: 'q'
+
+    state CreateNew {
+        [*] --> PromptForSize
+        PromptForSize --> InitializingSpreadsheet: Confirm
+        InitializingSpreadsheet --> [*]: Done
+    }
+
+    state LoadFile {
+        [*] --> PromptForFilename
+        PromptForFilename --> LoadingSpreadsheet: FilenameEntered
+        LoadingSpreadsheet --> [*]: Success
+        LoadingSpreadsheet --> PromptForFilename: Failure
+    }
+
+    state SaveFile {
+        [*] --> CheckingFileExistence
+        CheckingFileExistence --> Saving: FileExists
+        CheckingFileExistence --> [*]: NoFileError
+        Saving --> [*]: Success
+        Saving --> CheckingFileExistence: Failure
+    }
+
+    state SaveAs {
+        [*] --> PromptForNewFilename
+        PromptForNewFilename --> SavingNewFile: FilenameEntered
+        SavingNewFile --> [*]: Success
+        SavingNewFile --> PromptForNewFilename: Failure
+    }
+}
+
+state "Spreadsheet" as SpreadsheetMode {
+    [*] --> Viewing
+    Viewing --> Editing: Enter key
+    Editing --> Viewing: Enter key
+    Viewing --> Navigate: Arrow keys
+    Navigate --> Viewing
+    Viewing --> MainMenu: 'q'
+
+    state Editing {
+        [*] --> Typing
+        Typing --> SaveChanges: Enter
+        SaveChanges --> [*]: Done
+        Typing --> CancelChanges: Escape
+        CancelChanges --> [*]: Done
+    }
+}
+
+[*] --> MainMenu
+MainMenu --> SpreadsheetMode: Create or Load File
+SpreadsheetMode --> MainMenu: Quit
+@enduml

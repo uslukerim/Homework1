@@ -12,6 +12,8 @@ Spreadsheet::Spreadsheet(int rows, int cols) : rows(rows), cols(cols) {
     //data.resize(rows, std::vector<std::string>(cols, "")); // Initialize all cells with empty strings
 secondHeader =" ";
 }
+
+// The following function was implemented with assistance from ChatGPT.
 std::string Spreadsheet::getColumnLabel(int index) const{
     std::string label;
     while (index >= 0) {
@@ -68,6 +70,8 @@ void Spreadsheet::display(AnsiTerminal& terminal,int cursorRow, int cursorCol, i
 
     std::vector<std::string> operators = { "+", "-", "*", "/" };
     std::vector<std::string> formulaLabels = { "SUM", "@SUM", "AVER", "@AVER", "STDDEV", "@STDDEV", "MAX", "@MAX", "MIN", "@MIN" };
+   
+   // The following function was implemented with assistance from ChatGPT.
     std::unordered_map<RegexType, std::string> regexMap = {
     { RegexType::TokenPattern, "([A-Z][0-9]{1,3}|[\\+\\-\\*/]|(SUM|@SUM|STDDEV|@STDDEV|AVER|@AVER|MAX|@MAX|MIN|@MIN)\\(([A-Z]{1,2}[0-9]{1,3})\\.\\.([A-Z]{1,2}[0-9]{1,3})\\)|-?\\d*\\.?\\d+([eE][-+]?\\d+)?|\\w+)" },
     { RegexType::MatrixReference, "^[A-Z]{1,2}[0-9]{1,3}$" },

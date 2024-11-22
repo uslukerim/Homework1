@@ -117,26 +117,26 @@ std::string LexicalAnalysis::calculateRangeFunction(const std::string& label, co
     int endCol = endCell[0] - 'A'; // Sütun
     int endRow = std::stoi(endCell.substr(1)) - 1; // Satır
 
-    // Geçersiz hücre aralığı kontrolü
+    // Invalid cell range check
     if (startRow < 0 || startRow >= data.getRows() || endRow < 0 || endRow >= data.getRows() ||
         startCol < 0 || startCol >= data.getCols() || endCol < 0 || endCol >= data.getCols()) {
         return "Error: Invalid cell range " + startCell + " to " + endCell;
     }
 
-    // Hücrelerin aynı sütunda veya aynı satırda olup olmadığını kontrol et
+    // Check if cells are in the same column or row
     if (startCol != endCol && startRow != endRow) {
         return "Error: Function can only operate on the same column or row";
     }
 
     std::vector<std::string> values;
 
-    // Aynı sütundaki hücreleri işle
+    // Process cells in the same column
     if (startCol == endCol) {
         for (int row = startRow; row <= endRow; ++row) {
             values.push_back(data(row,startCol));
         }
     }
-    // Aynı satırdaki hücreleri işle
+    // Process cells in the same row
     else if (startRow == endRow) {
         for (int col = startCol; col <= endCol; ++col) {
             values.push_back(data(startRow,col));
@@ -147,7 +147,7 @@ std::string LexicalAnalysis::calculateRangeFunction(const std::string& label, co
         return "Error: No valid cells in the specified range.";
     }
 
-    // Sayısal değerleri ayıkla
+    //Extract numeric values    
     std::vector<double> doubleValues;
     for (const auto& val : values) {
         if (isNumeric(val)) {
@@ -155,7 +155,7 @@ std::string LexicalAnalysis::calculateRangeFunction(const std::string& label, co
         }
     }
 
-    // Fonksiyon hesaplama
+    // Function calculation    
     if (label == "SUM") {
         return std::to_string(std::accumulate(doubleValues.begin(), doubleValues.end(), 0.0));
     } else if (label == "AVER") {
@@ -165,17 +165,17 @@ std::string LexicalAnalysis::calculateRangeFunction(const std::string& label, co
     } else if (label == "MIN") {
         return std::to_string(*std::min_element(doubleValues.begin(), doubleValues.end()));
     } else if (label == "STDDEV") {
-        // Ortalama hesapla
+        //Calculate average        
         double mean = std::accumulate(doubleValues.begin(), doubleValues.end(), 0.0) / doubleValues.size();
 
-        // Varyans hesapla
+        // Calculate variance
         double variance = 0.0;
         for (const auto& val : doubleValues) {
             variance += (val - mean) * (val - mean);
         }
         variance /= doubleValues.size();
 
-        // Standart sapma (karekök)
+        // Standard deviation (square root)
         return std::to_string(std::sqrt(variance));
     }
 
@@ -257,11 +257,6 @@ std::string LexicalAnalysis::applyOp(const std::string& a, const std::string& b,
 /**
  * @brief Checks if a string represents a numeric value.
  */
-// bool LexicalAnalysis::isNumeric(const std::string& str) {
-//     if (str.empty()) return false;
-//     size_t start = (str[0] == '-') ? 1 : 0;
-//     return std::all_of(str.begin() + start, str.end(), ::isdigit);
-// }
 bool LexicalAnalysis::isNumeric(const std::string& str) {
     return std::regex_match(str, std::regex("^-?\\d*\\.?\\d+([eE][-+]?\\d+)?$"));
 }
@@ -274,6 +269,10 @@ int LexicalAnalysis::precedence(char op) {
     if (op == '*' || op == '/') return 2;
     return 0;
 }
+
+/**
+ * @brief Formats a decimal string by trimming unnecessary trailing zeros and ensuring precision.
+ */
 std::string LexicalAnalysis::formatDecimal(const std::string& number) {
 double value = std::stod(number); // Convert string to double
     std::ostringstream oss;

@@ -1,0 +1,41 @@
+@startuml
+state "System Overview" as System {
+    state "AnsiTerminal" as AnsiTerminal {
+        [*] --> Initialized
+        Initialized --> HandlingInput: KeyPress
+        HandlingInput --> [*]: Done
+    }
+
+    state "CellMatrix" as CellMatrix {
+        [*] --> Initialized
+        Initialized --> LoadingData: LoadFromFile
+        LoadingData --> Ready: DataLoaded
+        Ready --> SavingData: SaveToFile
+        SavingData --> Ready: Saved
+    }
+
+    state "Tokenizer" as Tokenizer {
+        [*] --> Initialized
+        Initialized --> Tokenizing: ParseInput
+        Tokenizing --> Ready: TokensGenerated
+    }
+
+    state "LexicalAnalysis" as LexicalAnalysis {
+        [*] --> Initialized
+        Initialized --> Analyzing: StartAnalysis
+        Analyzing --> Ready: AnalysisComplete
+    }
+
+    state "Spreadsheet" as Spreadsheet {
+        [*] --> Initialized
+        Initialized --> Displaying: ShowData
+        Displaying --> Editing: UpdateCell
+        Editing --> Displaying: SaveChanges
+    }
+
+    AnsiTerminal --> Spreadsheet : UI Control
+    Spreadsheet --> CellMatrix : Manages Data
+    Spreadsheet --> Tokenizer : Token Parsing
+    Spreadsheet --> LexicalAnalysis : Formula Analysis
+    LexicalAnalysis --> CellMatrix : Data Access
+@enduml

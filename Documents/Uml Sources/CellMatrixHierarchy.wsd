@@ -1,0 +1,30 @@
+@startuml
+class CellMatrix {
+  + CellMatrix(rows: int, cols: int)
+  + getValue(row: int, col: int): string
+  + setValue(row: int, col: int, value: string): void
+  + getRows(): int
+  + getCols(): int
+  + saveToFile(filename: string): bool
+  + loadFromFile(filename: string): bool
+  + resize(rows: int, cols: int): void
+  + clear(): void
+}
+
+class Spreadsheet {
+  + display(): void
+  + updateCell(row: int, col: int, value: string): void
+}
+
+class LexicalAnalysis {
+  + analyze(input: string): void
+}
+
+class Tokenizer {
+  + tokenize(input: string): vector<Token>
+}
+
+CellMatrix *-- Spreadsheet : managed by
+CellMatrix *-- LexicalAnalysis : accessed by
+CellMatrix *-- Tokenizer : resolved by
+@enduml

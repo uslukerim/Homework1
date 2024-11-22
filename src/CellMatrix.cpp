@@ -46,6 +46,10 @@ const std::string& CellMatrix::operator()(int row, int col) const {
     return data[row][col]; // Retrieve value using 0-based indexing
 }
 
+ /**
+ * @brief Retrieves the value of a cell in the matrix at the specified row and column.
+ * 
+ * */
 const std::string CellMatrix::getValue(int row, int col) const 
 {
     if (row >= 1 && row <= rows && col >= 1 && col <= cols) {
@@ -53,7 +57,9 @@ const std::string CellMatrix::getValue(int row, int col) const
     }
     return ""; // Return an empty string if out of bounds
 }
-
+/**
+ * @brief Sets the content of a specific cell.
+ */
 void CellMatrix::setValue(int row, int col, const std::string& value) {
     if (row >= 1 && col >= 1) { // Ensure valid 1-based indexing
         resizeIfNeeded(row, col); // Resize if necessary
@@ -119,7 +125,7 @@ void CellMatrix::resizeToFit(int newRows, int newCols) {
     }
     resize(std::max(newRows, rows), std::max(newCols, cols));
 }
-// Clears the contents of all cells in the matrix.
+///@brief: Clears the contents of all cells in the matrix.
 void CellMatrix::clear() {
     for (auto& row : data) {
         for (auto& cell : row) {

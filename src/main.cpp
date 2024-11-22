@@ -38,7 +38,7 @@ void updateCellContent(Spreadsheet& sheet, int cursorRow, int cursorCol, char ke
     prevRow = cursorRow;
     prevCol = cursorCol;
 }
-// Kullanıcıdan dosya adını alacak yardımcı fonksiyon
+// Helper function to get file name from user
 std::string getFileNameFromUser(AnsiTerminal& terminal, int windowSize, const std::string& promptMessage, int offsetX) {
     terminal.printInvertedAt(windowSize + 6, offsetX, promptMessage);
     std::string filename;
@@ -55,23 +55,23 @@ std::string getFileNameFromUser(AnsiTerminal& terminal, int windowSize, const st
 void handleMainMenu(Spreadsheet& sheet, AnsiTerminal& terminal, ProgramMode& mode, int windowSize, std::string& currentFile) {
     terminal.clearScreen();
     
-    // Mevcut dosya adı bilgisi
+    // Current filename information
     std::string currentFileDisplay = currentFile.empty() ? "Untitled" : currentFile;
 
-    // Ana menü ve mevcut dosya adı
+    // Main menu and current file name
     std::string DownTabMenu = "1. Create New | 2. Select File | 3. Save File | 4. Save As | 5. Show Current File | q. Quit";
     terminal.printInvertedAt(windowSize + 6, 2, DownTabMenu);
     terminal.printInvertedAt(windowSize + 8, 2, "Current File: " + currentFileDisplay);
 
-    // Dinamik olarak başlangıç X pozisyonu hesapla
+    // Dynamically calculate starting X position
     int offsetX = DownTabMenu.length() + 5;
 
-    char inputKey = terminal.getSpecialKey(); // Kullanıcı girdisi al
+    char inputKey = terminal.getSpecialKey(); // get User Input
     switch (inputKey) {
         case '1': { 
-            sheet.createNew(20, 20); // Yeni bir tablo oluştur
-            currentFile.clear();   // Yeni tablo için dosya adı temizlenir
-            mode = ProgramMode::Spreadsheet; // Spreadsheet moduna geç
+            sheet.createNew(20, 20); // Create a new table
+            currentFile.clear();   // The filename for the new table is cleared
+            mode = ProgramMode::Spreadsheet; // go Spreadsheet mod
             break;
         }
         case '2': {
@@ -79,10 +79,10 @@ void handleMainMenu(Spreadsheet& sheet, AnsiTerminal& terminal, ProgramMode& mod
             currentFile = getFileNameFromUser(terminal, windowSize, "Enter file name to load: ", offsetX);
             if (sheet.data.loadFromFile(currentFile)) {
                 terminal.printInvertedAt(windowSize + 6, offsetX, "File loaded successfully");
-                mode = ProgramMode::Spreadsheet; // Spreadsheet moduna geç
+                mode = ProgramMode::Spreadsheet; // go Spreadsheet mod
             } else {
                 terminal.printInvertedAt(windowSize + 6, offsetX, "Failed to load file.");
-                currentFile.clear(); // Hatalı yükleme durumunda dosya adı temizlenir
+                currentFile.clear(); // In case of incorrect loading, the file name is cleared
             }
             break;
         }
@@ -101,7 +101,7 @@ void handleMainMenu(Spreadsheet& sheet, AnsiTerminal& terminal, ProgramMode& mod
             // Save As
             std::string newFileName = getFileNameFromUser(terminal, windowSize, "Enter file name to save as: ", offsetX);
             if (sheet.data.saveToFile(newFileName)) {
-                currentFile = newFileName; // Yeni dosya adı olarak güncelle
+                currentFile = newFileName; // Update as new file name
                 terminal.printInvertedAt(windowSize + 6, offsetX, "File saved successfully");
             } else {
                 terminal.printInvertedAt(windowSize + 6, offsetX, "Failed to save file.");
@@ -125,7 +125,7 @@ void handleMainMenu(Spreadsheet& sheet, AnsiTerminal& terminal, ProgramMode& mod
             break;
         }
         default:
-            break; // Geçersiz giriş, hiçbir şey yapma
+            break; // Invalid input, do nothing
     }
 }
 

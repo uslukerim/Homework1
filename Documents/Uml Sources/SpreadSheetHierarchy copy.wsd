@@ -1,0 +1,39 @@
+@startuml
+class Spreadsheet {
+  + Spreadsheet(rows: int, cols: int)
+  + createNew(rows: int, cols: int): void
+  + setSecondHeader(value: string): void
+  + display(terminal: AnsiTerminal, cursorRow: int, cursorCol: int, offsetRow: int, offsetCol: int): void
+}
+
+class AnsiTerminal {
+  + printAt(row: int, col: int, text: string): void
+  + printInvertedAt(row: int, col: int, text: string): void
+  + clearScreen(): void
+}
+
+class CellMatrix {
+  + getValue(row: int, col: int): string
+  + setValue(row: int, col: int, value: string): void
+  + getRows(): int
+  + getCols(): int
+  + saveToFile(filename: string): bool
+  + loadFromFile(filename: string): bool
+}
+
+class Tokenizer {
+  + tokenize(input: string): vector<Token>
+}
+
+class LexicalAnalysis {
+  + analyze(input: string): void
+  + evaluateFormula(tokens: vector<Token>): string
+}
+
+Spreadsheet *-- AnsiTerminal : uses
+Spreadsheet *-- CellMatrix : manages
+Spreadsheet *-- Tokenizer : parses
+Spreadsheet *-- LexicalAnalysis : analyzes
+LexicalAnalysis -- CellMatrix : accesses
+Tokenizer -- CellMatrix : resolves
+@enduml

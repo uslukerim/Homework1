@@ -1,0 +1,23 @@
+@startuml
+class LexicalAnalysis {
+  + LexicalAnalysis(tokenizer: Tokenizer, data: CellMatrix)
+  + analyze(input: string): void
+  + evaluateFormula(tokens: vector<Token>): string
+}
+
+class Tokenizer {
+  + tokenize(input: string): vector<Token>
+}
+
+class CellMatrix {
+  + getValue(row: int, col: int): string
+  + setValue(row: int, col: int, value: string): void
+  + getRows(): int
+  + getCols(): int
+  + saveToFile(filename: string): bool
+  + loadFromFile(filename: string): bool
+}
+
+LexicalAnalysis *-- Tokenizer : uses
+LexicalAnalysis *-- CellMatrix : accesses
+@enduml
