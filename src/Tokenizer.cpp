@@ -1,5 +1,3 @@
-
-
 #include "Tokenizer.h"
 #include <sstream>
 #include <algorithm>
@@ -7,23 +5,35 @@
 
 /**
  * @brief Constructor for the Tokenizer class.
- * Initializes the operators and formula labels.
+ * @param operators A vector of operator strings.
+ * @param formulaLabels A vector of formula label strings.
+ * @param regexMap A map of regex patterns classified by RegexType.
  */
-Tokenizer::Tokenizer(const std::vector<std::string>& operators, const std::vector<std::string>& formulaLabels)
-    : operators(operators.begin(), operators.end()), formulaLabels(formulaLabels.begin(), formulaLabels.end()) {}
+Tokenizer::Tokenizer(const std::vector<std::string>& operators,
+                     const std::vector<std::string>& formulaLabels,
+                     const std::unordered_map<RegexType, std::string>& regexMap)
+    : operators(operators.begin(), operators.end()),
+      formulaLabels(formulaLabels.begin(), formulaLabels.end()) {
+    // Convert regex strings to std::regex and store them
+    for (const auto& [type, pattern] : regexMap) {
+        regexes[type] = std::regex(pattern);
+    }
+}
 
 /**
- * @brief Tokenizes a string into tokens based on regular expressions and predefined operators/formula labels.
+ * @brief Tokenizes the input string into a list of tokens based on regex patterns and predefined rules.
+ * @param str The input string to tokenize.
+ * @return A vector of Token objects extracted from the input string.
  */
 std::vector<Token> Tokenizer::tokenize(const std::string& str) const {
     std::vector<Token> tokens;
-    //std::regex tokenRegex("([A-Z][0-9]{1,3}|[\\+\\-\\*/]|(SUM|AVER|MAX|MIN)\\([A-Z][0-9]{1,3}\\.\\.[A-Z][0-9]{1,3}\\)|\\w+)");
-    std::regex tokenRegex(
-    "([A-Z][0-9]{1,3}|"                    // Hücre referansı: A1, B20, AA300 gibi
-    "[\\+\\-\\*/]|"                        // Matematiksel operatörler: +, -, *, /
-    "(SUM|@SUM|STDDEV|@STDDEV|AVER|@AVER|MAX|@MAX|MIN|@MIN)\\(([A-Z]{1,2}[0-9]{1,3})\\.\\.([A-Z]{1,2}[0-9]{1,3})\\)|" // Formüller: SUM(A1..A10)
-    "-?\\d*\\.?\\d+([eE][-+]?\\d+)?|\\w+)" // Sayılar: 12.34, .1234, 1.23E4
-);
+
+    if (regexes.find(RegexType::TokenPattern) == regexes.end()) {
+        throw std::runtime_error("TokenPattern regex is not defined.");
+    }
+
+    // Use the TokenPattern regex for initial token matching
+    std::regex tokenRegex = regexes.at(RegexType::TokenPattern);
 
     auto tokensBegin = std::sregex_iterator(str.begin(), str.end(), tokenRegex);
     auto tokensEnd = std::sregex_iterator();
@@ -34,76 +44,51 @@ std::vector<Token> Tokenizer::tokenize(const std::string& str) const {
         std::string part = (*i).str();
         Token currentToken = classifyToken(part);
 
-        // Check if current token is a MatrixReference and follows another MatrixReference without an operator
         if (lastToken.type == TokenType::MatrixReference && currentToken.type == TokenType::MatrixReference) {
-            // Mark the entire sequence as a Label if two MatrixReferences appear consecutively without an operator
             currentToken.type = TokenType::Label;
             currentToken.value = lastToken.value + part;
-            tokens.pop_back(); // Remove the last token since it's now part of a Label
-        }
-        else if (lastToken.type == TokenType::MatrixReference && currentToken.type != TokenType::Operator &&
-                 currentToken.type != TokenType::Unknown) {
-            // If any non-operator appears after a MatrixReference, mark it as a Label
+            tokens.pop_back();
+        } else if (lastToken.type == TokenType::MatrixReference && currentToken.type != TokenType::Operator &&
+                   currentToken.type != TokenType::Unknown) {
             currentToken.type = TokenType::Label;
             currentToken.value = lastToken.value + part;
-            tokens.pop_back(); // Remove the last token since it's now part of a Label
+            tokens.pop_back();
         }
 
         tokens.push_back(currentToken);
-        lastToken = currentToken; // Update lastToken to the current one
+        lastToken = currentToken;
     }
 
     return tokens;
 }
 
-
 /**
- * @brief Classifies individual string parts as specific token types.
+ * @brief Determines the type of a string segment and creates a corresponding token.
+ * @param part The string segment to classify.
+ * @return A Token object containing the type and value of the input segment.
  */
 Token Tokenizer::classifyToken(const std::string& part) const {
-    // Check for a MatrixReference: one or two letters followed by one to three digits
-    if (std::regex_match(part, std::regex("^[A-Z]{1,2}[0-9]{1,3}$"))) {
+    if (std::regex_match(part, regexes.at(RegexType::MatrixReference))) {
         return { TokenType::MatrixReference, part };
-    }
-    // Check for a Formula pattern
-    else if (std::regex_match(part, std::regex("^(SUM|@SUM|STDDEV|@STDDEV|AVER|@AVER|MAX|@MAX|MIN|@MIN)\\(([A-Z]{1,2}[0-9]{1,3})\\.\\.([A-Z]{1,2}[0-9]{1,3})\\)$"))) {
+    } else if (std::regex_match(part, regexes.at(RegexType::Formula))) {
         return { TokenType::Formula, part };
-    }
-    // // Check for a Number
-    // else if (std::regex_match(part, std::regex("^\\d+$"))) {
-    //     return { TokenType::Number, part };
-    // }
-    else if (std::regex_match(part, std::regex("^-?\\.\\d+$"))) {
-        std::string normalized = "0" + part; // Add leading 0 to numbers starting with '.'
+    } else if (std::regex_match(part, regexes.at(RegexType::DecimalNumber))) {
+        std::string normalized = "0" + part;
         return { TokenType::Number, normalized };
-    }
-
-    // Check for a scientific notation number (e.g., .123E2 -> 0.123E2)
-                                              //
-                                              //"^-?\\.?\\d+([eE][-+]?\\d+)?$"
-    else if (std::regex_match(part, std::regex("^-?\\d*\\.?\\d+([eE][-+]?\\d+)?$"))) {
-        if (part[0] == '.') { // Handle numbers starting with '.'
-            std::string normalized = "0" + part;
-            return { TokenType::Number, normalized };
-        }
+    } else if (std::regex_match(part, regexes.at(RegexType::GeneralNumber))) {
         return { TokenType::Number, part };
-    }
-    // Mixed alphanumeric values are considered Label
-    else if (std::regex_match(part, std::regex(".*[A-Za-z].*[0-9].*|.*[0-9].*[A-Za-z].*"))) {
+    } else if (std::regex_match(part, regexes.at(RegexType::AlphanumericLabel))) {
         return { TokenType::Label, part };
-    }
-    // Check for an Operator
-    else if (operators.find(part) != operators.end()) {
+    } else if (operators.find(part) != operators.end()) {
         return { TokenType::Operator, part };
     }
     return { TokenType::Unknown, part };
 }
 
-
-
-
 /**
- * @brief Helper function to convert a TokenType to a string for display purposes.
+ * @brief Converts a TokenType enum to its string representation.
+ * @param type The TokenType to convert.
+ * @return A string representation of the TokenType.
  */
 std::string tokenTypeToString(TokenType type) {
     switch (type) {

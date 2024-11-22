@@ -66,12 +66,18 @@ void Spreadsheet::display(AnsiTerminal& terminal,int cursorRow, int cursorCol, i
     std::string displayContent = cellContent.empty() ? " " : cellContent;
     terminal.printAt(1, 2, "\033[42m " + cellLabel + " (" + std::string(1, getContentType(displayContent)) + ") " + displayContent + " \033[0m");
 
-    // Tokenize and analyze the selected cell
-
     std::vector<std::string> operators = { "+", "-", "*", "/" };
-    std::vector<std::string> formulaLabels = { "SUM", "AVER", "MAX", "MIN" };
+    std::vector<std::string> formulaLabels = { "SUM", "@SUM", "AVER", "@AVER", "STDDEV", "@STDDEV", "MAX", "@MAX", "MIN", "@MIN" };
+    std::unordered_map<RegexType, std::string> regexMap = {
+    { RegexType::TokenPattern, "([A-Z][0-9]{1,3}|[\\+\\-\\*/]|(SUM|@SUM|STDDEV|@STDDEV|AVER|@AVER|MAX|@MAX|MIN|@MIN)\\(([A-Z]{1,2}[0-9]{1,3})\\.\\.([A-Z]{1,2}[0-9]{1,3})\\)|-?\\d*\\.?\\d+([eE][-+]?\\d+)?|\\w+)" },
+    { RegexType::MatrixReference, "^[A-Z]{1,2}[0-9]{1,3}$" },
+    { RegexType::Formula, "^(SUM|@SUM|STDDEV|@STDDEV|AVER|@AVER|MAX|@MAX|MIN|@MIN)\\(([A-Z]{1,2}[0-9]{1,3})\\.\\.([A-Z]{1,2}[0-9]{1,3})\\)$" },
+    { RegexType::DecimalNumber, "^-?\\.\\d+$" },
+    { RegexType::GeneralNumber, "^-?\\d*\\.?\\d+([eE][-+]?\\d+)?$" },
+    { RegexType::AlphanumericLabel, ".*[A-Za-z].*[0-9].*|.*[0-9].*[A-Za-z].*" }
+};
 
-    Tokenizer tokenizer(operators, formulaLabels);
+Tokenizer tokenizer(operators, formulaLabels, regexMap);
 
     LexicalAnalysis lexicalAnalyzer(tokenizer,data);
 
