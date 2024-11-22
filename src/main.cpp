@@ -24,7 +24,7 @@ void updateOffsets(int& offsetRow, int& offsetCol, int cursorRow, int cursorCol,
     else if (cursorCol >= offsetCol + windowSize) offsetCol = cursorCol - windowSize + 1;  // Sağ kenara ulaştı
 }
 void updateCellContent(Spreadsheet& sheet, int cursorRow, int cursorCol, char key, int& prevRow, int& prevCol) {
-    std::string currentContent = sheet.getValue(cursorRow + 1, cursorCol + 1); // Mevcut içeriği al
+    std::string currentContent = sheet.data.getValue(cursorRow + 1, cursorCol + 1); // Mevcut içeriği al
     if (cursorRow == prevRow && cursorCol == prevCol) {
         // Aynı hücredeyiz, mevcut içeriğe karakter ekle
         currentContent += key; 
@@ -33,7 +33,7 @@ void updateCellContent(Spreadsheet& sheet, int cursorRow, int cursorCol, char ke
         currentContent = key;
     }
     // Güncellenmiş içeriği ata ve ikinci başlığı güncelle
-    sheet.setValue(cursorRow + 1, cursorCol + 1, currentContent);
+    sheet.data.setValue(cursorRow + 1, cursorCol + 1, currentContent);
     sheet.setSecondHeader(currentContent);
     prevRow = cursorRow;
     prevCol = cursorCol;
@@ -77,7 +77,7 @@ void handleMainMenu(Spreadsheet& sheet, AnsiTerminal& terminal, ProgramMode& mod
         case '2': {
             // Dosya adını kullanıcıdan al
             currentFile = getFileNameFromUser(terminal, windowSize, "Enter file name to load: ", offsetX);
-            if (sheet.loadFromFile(currentFile)) {
+            if (sheet.data.loadFromFile(currentFile)) {
                 terminal.printInvertedAt(windowSize + 6, offsetX, "File loaded successfully");
                 mode = ProgramMode::Spreadsheet; // Spreadsheet moduna geç
             } else {
@@ -90,7 +90,7 @@ void handleMainMenu(Spreadsheet& sheet, AnsiTerminal& terminal, ProgramMode& mod
             // Save File
             if (currentFile.empty()) {
                 terminal.printInvertedAt(windowSize + 6, offsetX, "No file name. Use 'Save As' instead.");
-            } else if (sheet.saveToFile(currentFile)) {
+            } else if (sheet.data.saveToFile(currentFile)) {
                 terminal.printInvertedAt(windowSize + 6, offsetX, "File saved successfully");
             } else {
                 terminal.printInvertedAt(windowSize + 6, offsetX, "Failed to save file.");
@@ -100,7 +100,7 @@ void handleMainMenu(Spreadsheet& sheet, AnsiTerminal& terminal, ProgramMode& mod
         case '4': {
             // Save As
             std::string newFileName = getFileNameFromUser(terminal, windowSize, "Enter file name to save as: ", offsetX);
-            if (sheet.saveToFile(newFileName)) {
+            if (sheet.data.saveToFile(newFileName)) {
                 currentFile = newFileName; // Yeni dosya adı olarak güncelle
                 terminal.printInvertedAt(windowSize + 6, offsetX, "File saved successfully");
             } else {

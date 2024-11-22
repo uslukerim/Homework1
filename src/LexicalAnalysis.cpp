@@ -4,8 +4,8 @@
  * @brief Constructor for the LexicalAnalysis class.
  * Initializes the tokenizer and data matrix.
  */
-LexicalAnalysis::LexicalAnalysis(const Tokenizer& tokenizer, const std::vector<std::vector<std::string>>& data)
-    : tokenizer(tokenizer), data(data) {}
+LexicalAnalysis::LexicalAnalysis(const Tokenizer& tokenizer, const CellMatrix& datain)
+    : tokenizer(tokenizer), data(datain) {}
 
 /**
  * @brief Analyzes the input expression, tokenizes it, and evaluates the result.
@@ -118,8 +118,8 @@ std::string LexicalAnalysis::calculateRangeFunction(const std::string& label, co
     int endRow = std::stoi(endCell.substr(1)) - 1; // Satır
 
     // Geçersiz hücre aralığı kontrolü
-    if (startRow < 0 || startRow >= data.size() || endRow < 0 || endRow >= data.size() ||
-        startCol < 0 || startCol >= data[0].size() || endCol < 0 || endCol >= data[0].size()) {
+    if (startRow < 0 || startRow >= data.getRows() || endRow < 0 || endRow >= data.getRows() ||
+        startCol < 0 || startCol >= data.getCols() || endCol < 0 || endCol >= data.getCols()) {
         return "Error: Invalid cell range " + startCell + " to " + endCell;
     }
 
@@ -133,13 +133,13 @@ std::string LexicalAnalysis::calculateRangeFunction(const std::string& label, co
     // Aynı sütundaki hücreleri işle
     if (startCol == endCol) {
         for (int row = startRow; row <= endRow; ++row) {
-            values.push_back(data[row][startCol]);
+            values.push_back(data(row,startCol));
         }
     }
     // Aynı satırdaki hücreleri işle
     else if (startRow == endRow) {
         for (int col = startCol; col <= endCol; ++col) {
-            values.push_back(data[startRow][col]);
+            values.push_back(data(startRow,col));
         }
     }
 
@@ -200,11 +200,11 @@ std::string LexicalAnalysis::getCellValue(const std::string& cell) {
     int row = std::stoi(cell.substr(rowIndex)) - 1;
 
     // Validate that the row and column are within matrix bounds
-    if (row < 0 || row >= data.size() || col < 0 || col >= data[0].size()) {
+    if (row < 0 || row >= data.getRows() || col < 0 || col >= data.getCols()) {
         return "Error: Invalid cell reference " + cell;
     }
 
-    std::string cellContent = data[row][col];
+    std::string cellContent = data(row,col);
 
     // If the cell content is a formula or reference, process it recursively
     std::vector<Token> tokens = tokenizer.tokenize(cellContent);

@@ -12,7 +12,7 @@
 #include <iomanip>
 #include <cmath>
 #include "Tokenizer.h" // Tokenizer class is assumed to be implemented separately
-
+#include "CellMatrix.h"
 
 /**
  * @brief The LexicalAnalysis class for analyzing and evaluating formulas and expressions.
@@ -25,7 +25,7 @@ public:
      * @param tokenizer A reference to the Tokenizer instance for tokenizing strings.
      * @param data A 2D vector of strings representing the spreadsheet data.
      */
-    LexicalAnalysis(const Tokenizer& tokenizer, const std::vector<std::vector<std::string>>& data);
+    LexicalAnalysis(const Tokenizer& tokenizer, const CellMatrix& datain);
 
     /**
      * @brief Analyzes the input string, tokenizes it, and evaluates the result.
@@ -80,7 +80,7 @@ public:
 
 private:
     const Tokenizer& tokenizer; ///< Reference to the Tokenizer instance.
-    const std::vector<std::vector<std::string>>& data; ///< Spreadsheet data.
+    const CellMatrix& data; ///< Spreadsheet data.
 
     /**
      * @brief Applies an arithmetic operation to two string values.
