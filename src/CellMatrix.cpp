@@ -3,7 +3,7 @@
  */
 
 #include "CellMatrix.h"
-
+#include <exception>
 /**
  * @brief Constructs a CellMatrix with the specified number of rows and columns.
  * @param rows Initial number of rows.
@@ -17,46 +17,71 @@ CellMatrix::CellMatrix(int rows, int cols)
     }
 }
 void CellMatrix::resizeIfNeeded(int newRow, int newCol) {
+
+
+
     // Resize rows if necessary
-    if (newRow > rows) {
-        data.resize(newRow, std::vector<std::string>(cols, " ")); // Add new rows
+    if (newRow >= data.size()) {
+        // Yeni satırların, boş vektör olarak eklenmesini sağlıyoruz.
+        data.resize(newRow + 1, std::vector<std::string>{});
         rows = newRow;
     }
-
     // Resize columns if necessary
-    if (newCol > cols) {
-        for (auto& row : data) {
-            row.resize(newCol, ""); // Add new columns to each row
+
+    for (auto& row : data) {
+        if (newCol >= row.size()) {
+            row.resize(newCol + 1, " ");
+            cols = newCol;
+
         }
-        cols = newCol;
     }
+
 }
 /**
  * @brief Accesses a cell value without modification.
- * @param row The row index of the cell.
- * @param col The column index of the cell.
- * @return A constant reference to the string value at the specified cell.
+ * @param row The row index of the cell (1-based indexing).
+ * @param col The column index of the cell (1-based indexing).
+ * @return A constant reference to the string value at the specified cell, 
+ *         or a reference to a static empty string if out of bounds.
  */
 const std::string& CellMatrix::operator()(int row, int col) const {
-    static const std::string empty = "";
-    if (!isValid(row, col)) {
+    static const std::string empty = ""; // Static empty string for invalid access
+
+    // Validate row and column indices
+    if (row < 0 || row >= rows || col < 0 || col >= cols) {
         return empty;
     }
-    
-    return data[row][col]; // Retrieve value using 0-based indexing
+
+    try {
+        return data.at(row ).at(col); // Use 0-based indexing with bounds checking
+    } catch (const std::out_of_range& e) {
+            return empty; // Return empty string in case of any error
+    } 
 }
 
- /**
+/**
  * @brief Retrieves the value of a cell in the matrix at the specified row and column.
  * 
- * */
+ * @param row The row number (1-based indexing).
+ * @param col The column number (1-based indexing).
+ * @return The value of the cell as a string, or an empty string if the indices are out of bounds.
+ */
 const std::string CellMatrix::getValue(int row, int col) const 
 {
-    if (row >= 1 && row <= rows && col >= 1 && col <= cols) {
-        return data[row - 1][col - 1]; // Retrieve value using 0-based indexing
+    try
+    {
+        if (row >= 1 && row <= rows && col >= 1 && col <= cols) {
+            return data.at(row - 1).at(col - 1); // Retrieve value using 0-based indexing
+        }
     }
-    return ""; // Return an empty string if out of bounds
+    catch(const std::exception& e)
+    {
+             return " ";
+    }
+
+    return " ";
 }
+
 /**
  * @brief Sets the content of a specific cell.
  */
@@ -141,33 +166,50 @@ void CellMatrix::clear() {
  * @return True if the file was loaded successfully, false otherwise.
  */
 bool CellMatrix::loadFromFile(const std::string& filename) {
-    std::ifstream file(filename);
-    if (!file.is_open()) {
-        std::cerr << "Error: Unable to open file for reading: " << filename << "\n";
-        return false;
+std::ifstream file(filename);
+if (!file.is_open()) {
+    std::cerr << "Error: Unable to open file for reading: " << filename << "\n";
+    return false;
+}
+
+std::vector<std::vector<std::string>> tempData;
+std::string line;
+
+while (std::getline(file, line)) {
+    if (line.empty()) {
+        continue; // skipempty lines
     }
 
-    std::vector<std::vector<std::string>> tempData;
-    std::string line;
-    while (std::getline(file, line)) {
-        std::stringstream ss(line);
-        std::string cell;
-        std::vector<std::string> row;
+    std::stringstream ss(line);
+    std::string cell;
+    std::vector<std::string> row;
 
-        while (std::getline(ss, cell, ',')) {
-            row.push_back(cell);
-        }
+    while (std::getline(ss, cell, ',')) {
+        row.push_back(cell);
+    }
+
+    if (!row.empty()) {
         tempData.push_back(row);
     }
+}
 
-    file.close();
+file.close();
 
-    // Update the matrix dimensions and data
-    rows = tempData.size();
-    cols = rows > 0 ? tempData[0].size() : 0;
-    data = std::move(tempData);
+// Update the matrix dimensions and data
+rows = tempData.size();
+int maxColNumber=0;
+for(auto& rowdata : tempData)
+{
+    if(rowdata.size()>maxColNumber)
+    {
+        maxColNumber=rowdata.size();
+    }
+}
+cols = rows > 0 ? maxColNumber : 0;
+data = std::move(tempData);
 
-    return true;
+return true;
+
 }
 
 /**

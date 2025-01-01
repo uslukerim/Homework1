@@ -2,6 +2,7 @@
 #include "Spreadsheet.h"
 
 #include <iostream>
+#include <string.h>
 enum class ProgramMode {
     MainMenu,
     Spreadsheet
@@ -55,7 +56,7 @@ std::string getFileNameFromUser(AnsiTerminal& terminal, int windowSize, const st
 void handleMainMenu(Spreadsheet& sheet, AnsiTerminal& terminal, ProgramMode& mode, int windowSize, std::string& currentFile) {
     terminal.clearScreen();
     
-    // Current filename information
+    // Current filename information2
     std::string currentFileDisplay = currentFile.empty() ? "Untitled" : currentFile;
 
     // Main menu and current file name
@@ -77,6 +78,7 @@ void handleMainMenu(Spreadsheet& sheet, AnsiTerminal& terminal, ProgramMode& mod
         case '2': {
             // Dosya adını kullanıcıdan al
             currentFile = getFileNameFromUser(terminal, windowSize, "Enter file name to load: ", offsetX);
+
             if (sheet.data.loadFromFile(currentFile)) {
                 terminal.printInvertedAt(windowSize + 6, offsetX, "File loaded successfully");
                 mode = ProgramMode::Spreadsheet; // go Spreadsheet mod

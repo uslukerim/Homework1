@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include<fstream>
+#include <unordered_map>
 
 // Constructor: Initializes the spreadsheet with the specified number of rows and columns
 Spreadsheet::Spreadsheet(int rows, int cols) : rows(rows), cols(cols) {
@@ -112,6 +113,7 @@ Tokenizer tokenizer(operators, formulaLabels, regexMap);
             int colPosition = headerCol + c * cellWidth;
 
             // Get cell content
+            
             std::string cellContent = data(r + offsetRow,c + offsetCol);
             std::string displayText=" ";
             if(cellContent!= "")
